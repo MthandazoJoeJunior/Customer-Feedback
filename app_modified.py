@@ -21,7 +21,6 @@ def class_scores(data_frame):
    sentiment_list = []
    for row_num in range(len(data_frame)):
       sentence = data_frame['sentence'][row_num]
-      #result = request.form['uploaded-file']
       result_pred = clf.predict(loaded_vec.transform([sentence]))
       classification = " "
       for i in result_pred:
@@ -32,7 +31,6 @@ def class_scores(data_frame):
       if declarative in classification:
          declarative_list.append([sentence])
       
-
    data_frame['sentence class'] = sentiment_list
    decla_sent = pd.DataFrame(declarative_list, columns=['declarative_sentences'])
    session['declarative_sentence_file'] = decla_sent.to_json()
@@ -41,10 +39,9 @@ def class_scores(data_frame):
    return data_frame    
 
 def sent_polarity(data_frame):
-   SID_obj = SentimentIntensityAnalyzer()
 
-#    declarative_list = []
-#    decla_sent = pd.DataFrame(declarative_list, columns=['declarative_sentences'])
+   SID_obj = SentimentIntensityAnalyzer()
+   decla_list = []
    for row_num in range(len(declarative_list)):
       sentence = data_frame['declarative_sentences'][row_num]
       polarity_dict = SID_obj.polarity_scores(sentence)
@@ -52,16 +49,15 @@ def sent_polarity(data_frame):
       row_num += 1
         # Calculate overall sentiment by compound score
       if polarity_dict['compound'] >= 0.05:
-        declarative_list.append("Positive")
+        decla_list.append("Positive")
 
       elif polarity_dict['compound'] <= - 0.05:
-        declarative_list.append("Negative")
+        decla_list.append("Negative")
 
       else:
-        declarative_list.append("Neutral") 
+        decla_list.append("Neutral")   
 
-   data_frame['polarity'] = declarative_list  
-#    session['declarative_sentence_file'] = decla_sent.to_json()
+   data_frame['polarity'] = decla_list  
 
    return data_frame 
 
@@ -95,12 +91,9 @@ def SentimentAnalysis():
     uploaded_json = session.get('uploaded_csv_file', None)
     # Convert json to data frame
     uploaded_df = pd.DataFrame.from_dict(eval(uploaded_json))
-    print(uploaded_df)
-    # Apply sentiment function to get sentiment score
+    # Apply sentiment function to get class score
     uploaded_df_sentiment = class_scores(uploaded_df)
     uploaded_df_html = uploaded_df_sentiment.to_html()
-    # uploaded_df_analysis = sent_polarity(uploaded_df)
-    # uploaded_df_html = uploaded_df_analysis.to_html()
     return render_template('show_data.html', data=uploaded_df_html)
 
 
@@ -111,7 +104,6 @@ def Sent_polarity():
     uploaded_json = session.get('declarative_sentence_file', None)
     # Convert json to data frame
     uploaded_df = pd.DataFrame.from_dict(eval(uploaded_json))
-    print(uploaded_df)
     # Apply sentiment function to get sentiment score
     uploaded_df_analysis = sent_polarity(uploaded_df)
     uploaded_df_html = uploaded_df_analysis.to_html()
